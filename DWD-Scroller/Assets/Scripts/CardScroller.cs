@@ -15,14 +15,20 @@ public class CardScroller : MonoBehaviour
     [SerializeField]
     private List<CardModel> cardsInHand = new List<CardModel>();
 
+    [SerializeField]
+    private float delta;
+
     private List<Card> currentCards = new List<Card>();
     private float currentOffset = 0;
     private float cardWidth = 100;
+    private float baseOffset = 0;
 
     private void Start()
     {
         RectTransform contentTransform = scrollRect.content;
-        
+        baseOffset = scrollRect.content.localPosition.x;
+        delta = scrollRect.content.localPosition.x - baseOffset;
+
         // Sorting hand first by suit then by value descending.
         cardsInHand = cardsInHand.OrderBy(ctx => ctx.CardSuit).ThenBy(ctx => -ctx.CardValue).ToList();
 
@@ -43,7 +49,7 @@ public class CardScroller : MonoBehaviour
             cardInstance.RenderCardFace(cardsInHand[i]);
 
             // Rename game object for clarity.
-            cardInstance.name = $"{cardsInHand[i].CardValue} of {cardsInHand[i].CardValue}";
+            cardInstance.name = $"{cardsInHand[i].CardValue} of {cardsInHand[i].CardSuit}";
 
             // Retrieve card width for other calculations.
             cardWidth = (cardInstance.transform as RectTransform).rect.width;
@@ -59,7 +65,7 @@ public class CardScroller : MonoBehaviour
     public void OnVectorChanged(Vector2 ctx)
     {
         // Retrieve offset from parent for content object since the ScrollRect behavior is to displace the Content object.
-        float delta = scrollRect.content.position.x;
+        delta = scrollRect.content.localPosition.x - baseOffset;
 
         // Tracking currentOffset identifies where we last updated a card position. If we've moved farther than one card width in either direction, we should update again.
         if (Mathf.Abs(delta - currentOffset) > cardWidth)
